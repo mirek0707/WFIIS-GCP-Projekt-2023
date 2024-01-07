@@ -1,0 +1,6 @@
+#app.yaml
+env_variables:
+  CLOUD_SQL_USERNAME: postgres
+  CLOUD_SQL_PASSWORD: p@ssw0rd
+  CLOUD_SQL_DATABASE_NAME: songs-db
+  CLOUD_SQL_CONNECTION_NAME: ???

@@ -14,10 +14,9 @@ left to right direction
 'top to bottom direction 
 
 
-
-package "Terraform" {
 EntityColoring("API")
 Entity("API", "API","Third-party API", "darkgrey", "Internet", "API")
+package "Terraform" {
 together {
 Cloud_Functions(AddLyrics, "Add Lyrics", "Cloud Functions")
 Cloud_Functions(GetRecords, "Get Records", "Cloud Functions")

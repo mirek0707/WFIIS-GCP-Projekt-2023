@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify, send_file
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from azapi import AZlyrics
 
 app = Flask(__name__)
@@ -9,6 +9,12 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://postgres:postgres
 
 db = SQLAlchemy(app)
 engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'])
+
+with engine.begin() as conn:
+    with open('schema.sql', 'r') as script_file:
+        sql_script = script_file.read()
+        result = conn.execute(text(sql_script)) 
+        conn.commit()     
 
 class Song(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -62,7 +68,7 @@ def fetch_lyrics_from_external_api(title, author):
     return api.lyrics
 
 if __name__ == '__main__':
-    with open('schema.sql', 'r') as script_file:
-        sql_script = script_file.read()
-        engine.execute(sql_script)
+    # with open('schema.sql', 'r') as script_file:
+    #     sql_script = script_file.read()
+    #     engine.execute(sql_script)
     app.run(debug=True, host="0.0.0.0", port=int(8080))

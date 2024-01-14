@@ -18,24 +18,29 @@ resource "google_sql_database_instance" "song" {
     deletion_protection = false
 }
 
-resource "google_sql_database" "postgresql_db" {
-  name      = "postgres"
-  instance  = "${google_sql_database_instance.postgresql.name}"
-}
+# resource "google_sql_database" "postgresql_db" {
+#   name      = "postgres"
+#   instance  = "${google_sql_database_instance.song.name}"
+# }
 
 resource "google_sql_user" "postgresql_user" {
   name     = "postgres"
-  instance = "${google_sql_database_instance.postgresql.name}"
+  instance = "${google_sql_database_instance.song.name}"
   password = "postgres"
 }
 
+resource "google_project_service" "sqladmin_api" {
+  service            = "sqladmin.googleapis.com"
+}
+
+#cloud run
 resource "google_cloud_run_v2_service" "gcp-lyrics-app" {
   name     = "gcp-lyrics-app"
   location = "${var.region}"
 
   template {
     containers {
-      image = "gcr.io/${var.project_id}/lyrics-app"
+      image = "gcr.io/${var.project_id}"
 
       volume_mounts {
         name       = "cloudsql"
@@ -50,5 +55,10 @@ resource "google_cloud_run_v2_service" "gcp-lyrics-app" {
     }
   }
   client     = "terraform"
-  depends_on = [google_project_service.secretmanager_api, google_project_service.cloudrun_api, google_project_service.sqladmin_api]
+  depends_on = [google_project_service.cloudrun_api, google_project_service.sqladmin_api]
+}
+
+resource "google_project_service" "cloudrun_api" {
+  service            = "run.googleapis.com"
+  disable_on_destroy = false
 }

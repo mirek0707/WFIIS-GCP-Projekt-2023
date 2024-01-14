@@ -40,7 +40,7 @@ resource "google_cloud_run_v2_service" "gcp-lyrics-app" {
 
   template {
     containers {
-      image = "gcr.io/${var.project_id}"
+      image = "gcr.io/${var.project_id}/app"
 
       volume_mounts {
         name       = "cloudsql"
@@ -56,6 +56,23 @@ resource "google_cloud_run_v2_service" "gcp-lyrics-app" {
   }
   client     = "terraform"
   depends_on = [google_project_service.cloudrun_api, google_project_service.sqladmin_api]
+}
+
+data "google_iam_policy" "noauth" {
+  binding {
+    role = "roles/run.invoker"
+    members = [
+      "allUsers",
+    ]
+  }
+}
+
+resource "google_cloud_run_service_iam_policy" "noauth" {
+  location    = google_cloud_run_v2_service.gcp-lyrics-app.location
+  project     = google_cloud_run_v2_service.gcp-lyrics-app.project
+  service     = google_cloud_run_v2_service.gcp-lyrics-app.name
+
+  policy_data = data.google_iam_policy.noauth.policy_data
 }
 
 resource "google_project_service" "cloudrun_api" {

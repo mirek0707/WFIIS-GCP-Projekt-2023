@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Song Database</title>
+</head>
+
+<body>
+    <h1>Song Database</h1>
+
+    <button onclick="getSongs()">Get Songs</button>
+
+    <ul id="songList"></ul>
+
+    <h2>Add New Song</h2>
+    <form id="addSongForm" onsubmit="addSong(event)">
+        <label for="title">Title:</label>
+        <input type="text" id="title" name="title" required>
+
+        <label for="author">Author:</label>
+        <input type="text" id="author" name="author" required>
+
+        <button type="submit">Add Song</button>
+    </form>
+
+    <script>
+        async function getSongs() {
+            const response = await fetch('/get-songs');
+            const data = await response.json();
+            const songList = document.getElementById('songList');
+            songList.innerHTML = '';
+
+            data.songs.forEach(song => {
+                const listItem = document.createElement('li');
+                listItem.innerHTML = `<a href="#" onclick="getLyrics(${song.id})">${song.title} - ${song.author}</a>`;
+                songList.appendChild(listItem);
+            });
+        }
+
+        async function addSong(event) {
+            event.preventDefault();
+
+            const title = document.getElementById('title').value;
+            const author = document.getElementById('author').value;
+
+            const response = await fetch('/add-song', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ title, author })
+            });
+
+            const data = await response.json();
+            alert(data.message || data.error);
+
+            titleInput.value = '';
+            authorInput.value = '';
+
+            getSongs();
+        }
+
+        async function getLyrics(songId) {
+            const response = await fetch(`/get-lyrics/${songId}`);
+            const data = await response.json();
+            alert(`Lyrics for ${data.title} by ${data.author}:\n\n${data.lyrics}`);
+        }
+    </script>
+</body>
+
+</html>

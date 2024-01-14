@@ -8,8 +8,8 @@ terraform {
 }
 
 # DB
-resource "google_sql_database" "postgresql" {
-    name     = "songs-db"
+resource "google_sql_database_instance" "song" {
+    name     = "song"
     project = "${var.project_id}"
     database_version = "POSTGRES_15"
     region = "${var.region}"
@@ -20,12 +20,36 @@ resource "google_sql_database" "postgresql" {
 }
 
 resource "google_sql_database" "postgresql_db" {
-  name      = "songs-db"
+  name      = "postgres"
   instance  = "${google_sql_database_instance.postgresql.name}"
 }
 
 resource "google_sql_user" "postgresql_user" {
-  name     = "db-user"
+  name     = "postgres"
   instance = "${google_sql_database_instance.postgresql.name}"
-  password = "p@ssw0rd"
+  password = "postgres"
+}
+
+resource "google_cloud_run_v2_service" "gcp-lyrics-app" {
+  name     = "gcp-lyrics-app"
+  location = "${var.region}"
+
+  template {
+    containers {
+      image = "gcr.io/${var.project_id}/lyrics-app"
+
+      volume_mounts {
+        name       = "cloudsql"
+        mount_path = "/cloudsql"
+      }
+    }
+    volumes {
+      name = "cloudsql"
+      cloud_sql_instance {
+        instances = [google_sql_database_instance.song.connection_name]
+      }
+    }
+  }
+  client     = "terraform"
+  depends_on = [google_project_service.secretmanager_api, google_project_service.cloudrun_api, google_project_service.sqladmin_api]
 }

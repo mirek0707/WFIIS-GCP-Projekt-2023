@@ -30,6 +30,7 @@ def get_record_count():
     finally:
         session.close()
 
+@functions_framework.http
 def send_email(request):
     record_count = get_record_count()
 

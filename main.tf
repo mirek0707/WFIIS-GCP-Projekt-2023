@@ -118,7 +118,7 @@ resource "google_cloudfunctions2_function" "send-email" {
     available_memory   = "256M"
     timeout_seconds    = 60
   }
-  depends_on = [google_project_service.sqladmin_api]
+  depends_on = [google_project_service.sqladmin_api, google_sql_database_instance.song]
 }
 
 resource "google_cloud_run_service_iam_member" "member" {

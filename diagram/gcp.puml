@@ -2,42 +2,43 @@
 !define GCPPuml https://raw.githubusercontent.com/Crashedmind/PlantUML-icons-GCP/master/dist
 !include GCPPuml/GCPCommon.puml
 !include GCPPuml/Compute/Cloud_Functions.puml
+!include GCPPuml/Compute/Cloud_Run.puml
 !include GCPPuml/Databases/Cloud_SQL.puml
 !include GCPPuml/Developer_Tools/Cloud_Scheduler.puml
 
 !include <awslib/AWSCommon>
 !include <awslib/general/internet.puml>
+!include <awslib/general/all.puml>
+!include <office/Users/user.puml>
 
-' skinparam linetype polyline
- skinparam linetype ortho
-left to right direction
-'top to bottom direction 
+top to bottom direction 
 
+
+User(User, "User", "User")
 
 EntityColoring("API")
-Entity("API", "API","Third-party API", "darkgrey", "Internet", "API")
+Entity("API", "Lyrics API","Third-party API", "darkgrey", "Internet", "API")
 package "Terraform" {
-together {
-Cloud_Functions(AddLyrics, "Add Lyrics", "Cloud Functions")
-Cloud_Functions(GetRecords, "Get Records", "Cloud Functions")
-Cloud_Functions(GetSongInfo, "Get Song Information", "Cloud Functions")
-}
+
+Cloud_Run(App, "GCP Lyrics App", "Cloud Run")
+Cloud_Functions(Send_Email, "Send Email", "Cloud Functions")
+
 
 Cloud_SQL(Cloud_SQL, "Database", "Cloud SQL")
 
 Cloud_Scheduler(Cloud_Scheduler, "Scheduler", "Cloud Scheduler")
 
 }
-AddLyrics <-u- Cloud_Scheduler
-GetRecords <-u- Cloud_Scheduler
-GetSongInfo <-u- Cloud_Scheduler
 
-AddLyrics -d-> Cloud_SQL
-GetRecords -d-> Cloud_SQL
-GetSongInfo -d-> Cloud_SQL
+User -r-> App : Using app
+Send_Email --l--> User : Email notification to user
+Send_Email <-u- Cloud_Scheduler : Run function on indicated time
+
+App <-d-> Cloud_SQL : Get records from db
+Send_Email <-d-> Cloud_SQL : Get number of records from db
+
+App <-r-> API : Get lyrics
 
 
-
-AddLyrics -r-> API
 
 @enduml
